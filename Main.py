@@ -16,12 +16,9 @@ def generatePreferenceList(numberStudents, numberEstablishments, capacity):
 
 if __name__ == '__main__':
     # generate a preference list for each student and project
-    student, establishment = generatePreferenceList(10, 10, 1)
+    student, establishment = generatePreferenceList(10, 10, 2)
 
     # resolve a stable mariage between students and projects
     #resolveStableMariage(student, establishment)
-
-
-
 
 
