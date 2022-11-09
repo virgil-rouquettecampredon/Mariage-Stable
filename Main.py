@@ -1,36 +1,38 @@
 import random
 
 
-def generatePreferenceList(numberStudents, numberEstablishments, capacity):
+def generatePreferenceList(numberStudents, numberProjects):
     # generate a list of students and projects
-    students = [[i for i in range(numberStudents)] for j in range(numberStudents)]
-    establishments = [[i for i in range(numberEstablishments)] for j in range(numberEstablishments)]
-
+    students = list(range(1, numberStudents + 1))
+    projects = list(range(1, numberProjects + 1))
     # generate a preference list for each student
-    for i in range(numberStudents):
+    for student in students:
         # generate a preference list for the student
-        random.shuffle(students[i])
-
+        preferenceList = random.sample(projects, len(projects))
+        # write the preference list to a file
+        with open("student" + ".txt", "a") as f:
+            f.write(str(preferenceList) + "\n")
     # generate a preference list for each project
-    for i in range(numberEstablishments):
+    for project in projects:
         # generate a preference list for the project
-        random.shuffle(establishments[i])
-
-    return students, establishments
+        preferenceList = random.sample(students, len(students))
+        # write the preference list to a file
+        with open("project" + ".txt", "a") as f:
+            f.write(str(preferenceList) + "\n")
+    return students, projects
 
 #resolve a stable mariage between students and projects
 def resolveStableMariage(students, projects):
 
 
 
-
 if __name__ == '__main__':
+    # create an empty file
+    open('student.txt', 'w').close()
+    open('project.txt', 'w').close()
+
     # generate a preference list for each student and project
-    student, establishment = generatePreferenceList(10, 10, 1)
-
-    # resolve a stable mariage between students and projects
-    resolveStableMariage(student, establishment)
-
+    generatePreferenceList(10, 10)
 
 
 
