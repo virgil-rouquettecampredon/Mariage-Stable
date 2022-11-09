@@ -3,8 +3,8 @@ import random
 
 def generatePreferenceList(numberStudents, numberEstablishments, capacity):
     # generate a list of students and establishments
-    students = [random.sample(range(1, numberStudents + 1), numberStudents) for i in range(numberStudents)]
-    establishments = [random.sample(range(1, numberEstablishments + 1), numberEstablishments) for i in range(numberEstablishments)]
+    students = [random.sample(range(1, numberStudents+1), numberStudents) for i in range(numberStudents)]
+    establishments = [random.sample(range(1, numberEstablishments+1), numberEstablishments) for i in range(numberEstablishments)]
 
     return students, establishments
 
@@ -13,7 +13,7 @@ def resolveStableMariage(students, establishments):
     studentAssignment = [0] * len(students)
     establishmentAssignment = [0] * len(establishments)
     finalChoice = {}
-    
+
     while 0 in studentAssignment: #Tant qu'un étudiant n'est pas affecté à un établissemnt
         newChoice = 0
         #print(studentAssignment)
@@ -26,7 +26,7 @@ def resolveStableMariage(students, establishments):
             finalChoice[establishment] = newChoice + 1
             studentAssignment[newChoice] = 1
             establishmentAssignment[establishment-1] = 1
-        else: 
+        else:
             actualChoice = finalChoice[establishment]
             trouve = False
             y = 0
@@ -47,17 +47,39 @@ def resolveStableMariage(students, establishments):
     return finalChoice
 
 
-
-
-
-
-
-
 if __name__ == '__main__':
     # generate a preference list for each student and project
-    student, establishment = generatePreferenceList(10, 10, 2)
+    student, establishment = generatePreferenceList(100, 100, 2)
+
+    studentPrioritizeEstablishment = [row[:] for row in student]
+    establishmentPrioritizeEstablishment = [row[:] for row in establishment]
+
+    print("Student priorities :")
+    print(student)
+    print("Establishment priorities :")
+    print(establishment)
 
     # resolve a stable mariage between students and projects
-    print(resolveStableMariage(student, establishment))
+    print("Stable mariage between students and establishments for establishments prioritize")
+    print(resolveStableMariage(studentPrioritizeEstablishment, establishmentPrioritizeEstablishment))
+    #List of establishments for each student has been modified after resolving the stable mariage, for calculated
+    #the number of choices that the student was affected to the establishment is the number of establishments
+    #minus the number of establishments in the list of establishments for the student
+
+    #print(studentPrioritizeEstablishment)
+    #print(establishmentPrioritizeEstablishment)
+
+    studentPrioritizeStudent = [row[:] for row in student]
+    establishmentPrioritizeStudent = [row[:] for row in establishment]
+
+    # resolve a stable mariage between students and projects
+    print("Stable mariage between students and establishments for students prioritize")
+    print(resolveStableMariage(establishmentPrioritizeStudent, studentPrioritizeStudent))
+    # List of establishments for each student has been modified after resolving the stable mariage, for calculated
+    # the number of choices that the student was affected to the establishment is the number of establishments
+    # minus the number of establishments in the list of establishments for the student
+
+    #print(studentPrioritizeStudent)
+    #print(establishmentPrioritizeStudent)
 
 
