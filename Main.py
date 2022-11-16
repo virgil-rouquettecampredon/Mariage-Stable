@@ -55,21 +55,21 @@ def resolveStableMariage(students, establishments):
     return finalChoice
 
 
-def satisfactionAlgorithm(studentsV, establishmentsV, finalChoice):
+def satisfactionAlgorithm(establishmentsV, finalChoice):
     satisfactionV = 0
-    for i in range(len(studentsV)):
-        for j in range(len(establishmentsV)):
-            if finalChoice[j + 1] == i + 1:
-                satisfactionV += (len(studentsV) - establishmentsV[j].index(i + 1)) + 1
+    for i in range(1, len(finalChoice)+1):
+        affectation = finalChoice[i]
+        satifactionChoice = establishmentsV[i-1].index(affectation)
+        satisfactionV += (len(establishmentsV) - satifactionChoice)
     return satisfactionV
 
 
 if __name__ == '__main__':
     # generate a preference list for each student and project
-    #student, establishment = generatePreferenceList(100, 100, 2)
+    student, establishment = generatePreferenceList(100, 100, 2)
 
-    establishment = [[2, 1, 3], [1, 2, 3], [1, 2, 3]]
-    student = [[1, 3, 2], [2, 1, 3], [2, 1, 3]]
+    #establishment = [[2, 1, 3], [1, 2, 3], [1, 2, 3]]
+    #student = [[1, 3, 2], [2, 1, 3], [2, 1, 3]]
 
     studentPrioritizeEstablishment = [row[:] for row in student]
     establishmentPrioritizeEstablishment = [row[:] for row in establishment]
@@ -83,6 +83,7 @@ if __name__ == '__main__':
     # resolve a stable mariage between students and projects
     print("Stable mariage between students and establishments for students prioritize")
     finalChoice = resolveStableMariage(studentPrioritizeEstablishment, establishmentPrioritizeEstablishment)
+    #(Establishments : students)
     print(finalChoice)
     # List of establishments for each student has been modified after resolving the stable mariage, for calculated
     # the number of choices that the student was affected to the establishment is the number of establishments
@@ -92,20 +93,18 @@ if __name__ == '__main__':
     # print(establishmentPrioritizeEstablishment)
 
     # calculate the satisfaction of the students
-    satisfaction = satisfactionAlgorithm(student, establishment, finalChoice)
-    #print(satisfaction)
+    satisfaction = satisfactionAlgorithm(establishment, finalChoice)
+    print("La satisfaction des students est de", satisfaction)
     # calculate the average rank for the students
-    satisfaction = satisfaction / len(student)
-    satisfaction = (satisfaction / len(establishment)) * 100
-    #print("Satisfaction of the students for establishments prioritize : " + str(round(satisfaction)) + "%")
+    satisfaction = (satisfaction / (len(student) * len(establishment))) * 100
+    print("Satisfaction of the students for students prioritize : " + str(round(satisfaction)) + "%")
 
     # calculate the satisfaction of the establishments
-    satisfaction = satisfactionAlgorithm(establishment, student, finalChoice)
-    #print(satisfaction)
+    satisfaction = satisfactionAlgorithm(student, finalChoice)
+    print("La satisfaction des establishments est de", satisfaction)
     # calculate the average rank for the establishments
-    satisfaction = satisfaction / len(establishment)
-    satisfaction = (satisfaction / len(student)) * 100
-    #print("Satisfaction of the establishments for establishments prioritize : " + str(round(satisfaction)) + "%")
+    satisfaction = (satisfaction / (len(student) * len(establishment))) * 100
+    print("Satisfaction of the establishments for students prioritize : " + str(round(satisfaction)) + "%")
 
 
     studentPrioritizeStudent = [row[:] for row in student]
@@ -114,26 +113,25 @@ if __name__ == '__main__':
     # resolve a stable mariage between students and projects
     print("Stable mariage between students and establishments for establishments prioritize")
     finalChoice = resolveStableMariage(establishmentPrioritizeStudent, studentPrioritizeStudent)
+    #(students : Establishments)
     print(finalChoice)
     # List of establishments for each student has been modified after resolving the stable mariage, for calculated
     # the number of choices that the student was affected to the establishment is the number of establishments
     # minus the number of establishments in the list of establishments for the student
 
     # calculate the satisfaction of the establishments
-    satisfaction = satisfactionAlgorithm(establishment, student, finalChoice)
-    #print(satisfaction)
+    satisfaction = satisfactionAlgorithm(student, finalChoice)
+    print("La satisfaction des establishments est de", satisfaction)
     # calculate the average rank for the establishments
-    satisfaction = satisfaction / len(establishment)
-    satisfaction = (satisfaction / len(student)) * 100
-    #print("Satisfaction of the establishment for students prioritize : " + str(round(satisfaction)) + "%")
+    satisfaction = (satisfaction / (len(student) * len(establishment))) * 100
+    print("Satisfaction of the establishment for establishments prioritize : " + str(round(satisfaction)) + "%")
 
     # calculate the satisfaction of the students
-    satisfaction = satisfactionAlgorithm(student, establishment, finalChoice)
-    #print(satisfaction)
+    satisfaction = satisfactionAlgorithm(establishment, finalChoice)
+    print("La satisfaction des students est de", satisfaction)
     # calculate the average rank for the students
-    satisfaction = satisfaction / len(student)
-    satisfaction = (satisfaction / len(establishment)) * 100
-    #print("Satisfaction of the students for students prioritize : " + str(round(satisfaction)) + "%")
+    satisfaction = (satisfaction / (len(student) * len(establishment))) * 100
+    print("Satisfaction of the students for establishments prioritize : " + str(round(satisfaction)) + "%")
 
 
     # print(studentPrioritizeStudent)
