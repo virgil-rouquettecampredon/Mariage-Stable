@@ -1,6 +1,10 @@
 import random
+import eel
 
+#Initialize the server for the web GUI
+eel.init('web', allowed_extensions=['.js', '.html'])
 
+@eel.expose
 def generatePreferenceList(numberStudents, numberEstablishments, capacity):
     # generate a list of students and establishments
     students = [random.sample(range(1, numberStudents + 1), numberStudents) for i in range(numberStudents)]
@@ -11,6 +15,7 @@ def generatePreferenceList(numberStudents, numberEstablishments, capacity):
 
 
 # resolve a stable mariage between students and projects
+@eel.expose
 def resolveStableMariage(students, establishments):
     studentAssignment = [0] * len(students)
     establishmentAssignment = [0] * len(establishments)
@@ -54,7 +59,7 @@ def resolveStableMariage(students, establishments):
                 #print("L'étudiant", newChoice + 1, "est affecté à l'établissement", establishment)
     return finalChoice
 
-
+@eel.expose
 def satisfactionAlgorithm(establishmentsV, finalChoice):
     satisfactionV = 0
     for i in range(1, len(finalChoice)+1):
@@ -136,3 +141,5 @@ if __name__ == '__main__':
 
     # print(studentPrioritizeStudent)
     # print(establishmentPrioritizeStudent)
+    
+    eel.start('index.html', mode=None)
