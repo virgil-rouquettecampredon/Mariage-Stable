@@ -17,11 +17,17 @@
 </div>
 <div id="main">
 	<form id="form-initialize">
-		<label for="nb-student">Nombre d'étudiants :</label>
-		<input type="number" step=1 id="nb-student" name="nb-student" value=10 required>
+		<label for="nb-voeux">Nombre de voeux :</label>
+		<input type="number" step=1 id="nb-voeux" name="nb-voeux" value=10 required>
+		<!-- Dropdown menu for satisfaction calculation -->
+		<label for="satisfaction">Satisfaction method :</label>
+		<select id="satisfaction" name="satisfaction">
+			<option value="1">Linéaire (x)</option>
+			<option value="2">1/x²+n²</option>
+			<option value="3">1/x</option>
+			<option value="4">1 ou 0.1</option>
+		</select>
 
-		<label for="nb-establishment">Nombre d'établissements :</label>
-		<input type="number" step=1 id="nb-establishment" name="nb-establishment" value=10 required>
 
 		<button id="button-generate" type='button'>Generate</button>
 		<button id="button-solve" type='button'>Solve</button>
@@ -77,13 +83,17 @@
 	window.addEventListener('DOMContentLoaded', (event) => {
 		document.getElementById("button-generate").addEventListener("click", () => getData());
 		document.getElementById("button-solve").addEventListener("click", () => solve());
+		//Update the graphs if the satisfaction dropdown is changed
+		document.getElementById("satisfaction").addEventListener("change", () => {
+			if (filledPreference) {
+				solve()
+			}
+		});
 	});
 
 	async function getData() {
-		nbStudent = parseInt(document.getElementById("nb-student").value);
-		nbEstablishment = parseInt(document.getElementById("nb-establishment").value);
-		console.log(nbStudent, nbEstablishment);
-		await fillPreferences(nbStudent, nbEstablishment);
+		nbVoeux = parseInt(document.getElementById("nb-voeux").value);
+		await fillPreferences(nbVoeux, nbVoeux);
 	}
 
 
@@ -145,11 +155,27 @@
 	}
 
 	async function calculateSatisfaction(antipriority, answers) {
+		//Get satisfaction method
+		let satisfaction = document.getElementById("satisfaction").value;
+
 		let result = await eel.satisfactionAlgorithm(antipriority, answers)();
 		result = (result / (nbStudent * nbEstablishment)) * 100
 		let satisfactionParEntite = {}
 		for(const [key, value] of Object.entries(answers)) {
-			satisfactionParEntite[key] = (antipriority[0].length-antipriority[key-1].indexOf(value))/antipriority[0].length*100
+			switch (satisfaction) {
+				case "1":
+					satisfactionParEntite[key] = (antipriority[0].length-antipriority[key-1].indexOf(value))/antipriority[0].length*100;
+					break;
+				case "2":
+					satisfactionParEntite[key] = (1/(Math.pow(antipriority[key-1].indexOf(value),2)+Math.pow(antipriority[0].length, 2)))*Math.pow(antipriority[0].length, 2);
+					break;
+				case "3":
+					satisfactionParEntite[key] = 1/antipriority[key-1].indexOf(value);
+					break;
+				case "4":
+					satisfactionParEntite[key] = antipriority[key-1].indexOf(value) in antipriority[key-1].slice(0, 2) ? 1 : 0.1;
+					break;
+			}
 		}
 		let average = Object.values(satisfactionParEntite).reduce((a, b) => a + b, 0) / Object.values(satisfactionParEntite).length;
 		console.log(average);
@@ -188,6 +214,20 @@
 	}
 
 	function getMixedChart(ctx, satisfactionParEntite, groupAverage, totalAverage) {
+		let suggestedMax = 0;
+		//Get satisfaction method
+		let satisfaction = document.getElementById("satisfaction").value;
+		switch (satisfaction) {
+			case "1":
+				suggestedMax = 100;
+				break;
+			case "2":
+			case "3":
+			case "4":
+				suggestedMax = 1;
+				break;
+		}
+
 		new Chart(ctx, {
 			data: {
 				datasets: [{
@@ -209,7 +249,7 @@
 				scales: {
 					y: {
 						beginAtZero: true,
-						suggestedMax: 100
+						suggestedMax: suggestedMax
 					}
 				},
 				elements: {
