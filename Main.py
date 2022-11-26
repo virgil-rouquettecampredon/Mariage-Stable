@@ -61,6 +61,7 @@ def resolveStableMariage(students, establishments):
 
 @eel.expose
 def satisfactionAlgorithm(establishmentsV, finalChoice):
+    finalChoice = {int(k):int(v) for k,v in finalChoice.items()}
     satisfactionV = 0
     for i in range(1, len(finalChoice)+1):
         affectation = finalChoice[i]

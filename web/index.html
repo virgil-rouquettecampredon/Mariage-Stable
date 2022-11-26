@@ -1,155 +1,267 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Mariage stable</title>
-    <link rel="stylesheet" href="css/style.css">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Mariage stable</title>
+	<link rel="stylesheet" href="css/style.css">
 	<script type="text/javascript" src="/eel.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  </head>
-  <body>
-	<div id="title">
-		<h1> Mariage stable </h1>
-		<h2> Algorithme de Gale–Shapley </h2>
-		<h3> Master IASD – Marie-Lou Desbos, Virgil Rouquette--Campredon, Tristan Tribes </h3>
+</head>
+<body>
+<div id="title">
+	<h1> Mariage stable </h1>
+	<h2> Algorithme de Gale–Shapley </h2>
+	<h3> Master IASD – Marie-Lou Desbos, Virgil Rouquette--Campredon, Tristan Tribes </h3>
+</div>
+<div id="main">
+	<form id="form-initialize">
+		<label for="nb-student">Nombre d'étudiants :</label>
+		<input type="number" step=1 id="nb-student" name="nb-student" value=10 required>
+
+		<label for="nb-establishment">Nombre d'établissements :</label>
+		<input type="number" step=1 id="nb-establishment" name="nb-establishment" value=10 required>
+
+		<button id="button-generate" type='button'>Generate</button>
+		<button id="button-solve" type='button'>Solve</button>
+	</form>
+
+	<h1>Satisfaction priorité étudiant :</h1>
+	<div class="sets">
+		<div id="students_students"></div>
+		<div id="establishments_students"></div>
 	</div>
-	<div id="main">
-		<form id="form-initialize">
-			<label for="nb-student">Nombre d'étudiants :</label>
-			<input type="number" step=1 id="nb-student" name="nb-student" value=10 required>
-			
-			<label for="nb-establishment">Nombre d'établissements :</label>
-			<input type="number" step=1 id="nb-establishment" name="nb-establishment" value=10 required>
-			
-			<button id="button-generate" type='button'>Submit</button>
-			<button id="button-solve" type='button'>Solve</button>
-		</form>
-		
-		<div id="sets">
-			<div id="students"></div>
-			<div id="establishments"></div>
+	<div class="chartContainer">
+		<div>
+			<h3>Étudiants</h3>
+			<canvas id="chart1"></canvas>
+		</div>
+		<div>
+			<h3>Établissements</h3>
+			<canvas id="chart2"></canvas>
 		</div>
 	</div>
-	<div id="chartDiv">
-	  <canvas id="myChart"></canvas>
+	<div class="stats">
+		<div id="satisfaction-global-students"></div>
+		<div id="satisfaction-local-students-students"></div>
+		<div id="satisfaction-local-students-establishments"></div>
 	</div>
-	<script src="js/index.js"></script>
-	<script type="text/javascript">
-		var filledPreference = false
-		var students = "";
-		var establishments = "";
-		var nbStudent = -1;
-		var nbEstablishment = -1;
-		window.addEventListener('DOMContentLoaded', (event) => {
-			document.getElementById("button-generate").addEventListener("click", () => getData());
-			document.getElementById("button-solve").addEventListener("click", () => solve());
-		});
-		
-		async function getData() {
-				nbStudent = parseInt(document.getElementById("nb-student").value);
-				nbEstablishment = parseInt(document.getElementById("nb-establishment").value);
-				console.log(nbStudent, nbEstablishment);
-				await fillPreferences(nbStudent, nbEstablishment);
-		}
-	
-	
-		function transformIndice(arr, type, index) {
-			index+=1;
-			arr = arr.map(e => '<span id="' + type+index+"_"+e + '" class="indice">' + type + '<sub>'+e+'</sub></span>');
-			return arr.join(", ");
-		}
-		
-		function removeChoice(id) {
-			console.log(id);
-			let tempChoice = document.getElementById(id);
-			tempChoice.classList.remove("highlight");
-			tempChoice.classList.add("strike-through");
-		}
-		
-		function highlightChoice(id) {
-			console.log(id);
-			let tempChoice = document.getElementById(id);
-			tempChoice.classList.remove("strike-through");
-			tempChoice.classList.add("highlight");
-		}
-		
-		async function fillPreferences(nbStudent, nbEstablishment) {
-			filledPreference = true;
-			let studentsDiv = document.getElementById("students");
-			let establishmentsDiv = document.getElementById("establishments");
-		
-			let [a, b] = await eel.generatePreferenceList(nbStudent, nbEstablishment, 1)();
-			students = a;
-			establishments = b;
-			studentsDiv.innerHTML = "";
-			establishmentsDiv.innerHTML = "";
-			students.forEach((e, i) => {
-				let tempDiv = document.createElement("div");
-				tempDiv.classList.add("preference");
-				tempDiv.innerHTML = "<span class='bold'>i<sub>" + (i+1) + "</sub></span> : (" + transformIndice(e, "s", i) + ")";
-				studentsDiv.append(tempDiv);
-			});
-			establishments.forEach((e, i) => {
-				let tempDiv = document.createElement("div");
-				tempDiv.classList.add("preference");
-				tempDiv.innerHTML = "<span class='bold'>s<sub>" + (i+1) + "</sub></span> : (" + transformIndice(e, "i", i) + ")";
-				establishmentsDiv.append(tempDiv);
-			});
-		}
-		
-		async function solve() {
-			if(!filledPreference) {
-				await getData();
-			}
-			let answers = await eel.resolveStableMariage(students, establishments)();
-			console.log(answers);
-			for(let i = 1; i<=nbStudent; i++) {
-				for(let j = 1; j<=nbEstablishment; j++) {
-					removeChoice("i"+i+"_"+j);
-					removeChoice("s"+i+"_"+j);
-				}
-			}
-			for(const [key, value] of Object.entries(answers)) {
-				console.log("key : " + key);
-				console.log("value : " + value);
-				highlightChoice("i"+key+"_"+value);
-				highlightChoice("s"+value+"_"+key);
-			}
-		}
-	</script>
-	<script>
-	  const ctx = document.getElementById('myChart');
+	<h1>Satisfaction priorité établissement :</h1>
+	<div class="sets">
+		<div id="students_establishments"></div>
+		<div id="establishments_establishments"></div>
+	</div>
+	<div class="chartContainer">
+		<div>
+			<h3>Étudiants</h3>
+			<canvas id="chart3"></canvas>
+		</div>
+		<div>
+			<h3>Établissements</h3>
+			<canvas id="chart4"></canvas>
+		</div>
+	</div>
+	<div class="stats">
+		<div id="satisfaction-global-establishments"></div>
+		<div id="satisfaction-local-establishments-students"></div>
+		<div id="satisfaction-local-establishments-establishments"></div>
+</div>
+<script src="js/index.js"></script>
+<script type="text/javascript">
+	var filledPreference = false
+	var students = "";
+	var establishments = "";
+	var nbStudent = -1;
+	var nbEstablishment = -1;
+	window.addEventListener('DOMContentLoaded', (event) => {
+		document.getElementById("button-generate").addEventListener("click", () => getData());
+		document.getElementById("button-solve").addEventListener("click", () => solve());
+	});
 
-	  const mixedChart = new Chart(ctx, {
-		data: {
-			datasets: [{
-				type: 'bar',
-				label: 'Satisfaction per student',
-				data: [70, 73, 40, 30],
-			}, {
-				type: 'line',
-				label: 'Global satisfaction',
-				data: [50, 50, 50, 50],
-			}],
-			labels: ['s1', 's2', 's3', 's4']
-		},
-		options: {
-			scales: {
-				y: {
-					beginAtZero: true,
-					suggestedMax: 100
-				}
+	async function getData() {
+		nbStudent = parseInt(document.getElementById("nb-student").value);
+		nbEstablishment = parseInt(document.getElementById("nb-establishment").value);
+		console.log(nbStudent, nbEstablishment);
+		await fillPreferences(nbStudent, nbEstablishment);
+	}
+
+
+	function transformIndice(arr, type, index, priority) {
+		index+=1;
+		arr = arr.map(e => '<span id="' + type+index+"_"+e+"_"+priority + '" class="indice">' + type + '<sub>'+e+'</sub></span>');
+		return arr.join(", ");
+	}
+
+	function removeChoice(id, priority) {
+		//console.log(id);
+		let tempChoice = document.getElementById(id+"_"+priority)
+		tempChoice.classList.remove("highlight");
+		tempChoice.classList.add("strike-through");
+	}
+
+	function highlightChoice(id, priority) {
+		//console.log(id);
+		let tempChoice = document.getElementById(id+"_"+priority);
+		tempChoice.classList.remove("strike-through");
+		tempChoice.classList.add("highlight");
+	}
+
+	async function fillPreferences(nbStudent, nbEstablishment) {
+		filledPreference = true;
+		let studentsStudentsDiv = document.getElementById("students_students");
+		let establishmentsStudentsDiv = document.getElementById("establishments_students");
+		let studentsEstablishmentsDiv = document.getElementById("students_establishments");
+		let establishmentsEstablishmentsDiv = document.getElementById("establishments_establishments");
+
+
+		let [a, b] = await eel.generatePreferenceList(nbStudent, nbEstablishment, 1)();
+		students = a;
+		establishments = b;
+		studentsStudentsDiv.innerHTML = "";
+		establishmentsStudentsDiv.innerHTML = "";
+		studentsEstablishmentsDiv.innerHTML = "";
+		establishmentsEstablishmentsDiv.innerHTML = "";
+		students.forEach((e, i) => {
+			let tempDiv = document.createElement("div");
+			tempDiv.classList.add("preference");
+			tempDiv.innerHTML = "<span class='bold'>i<sub>" + (i+1) + "</sub></span> : (" + transformIndice(e, "s", i, "student") + ")";
+			studentsStudentsDiv.append(tempDiv);
+			let tempDiv2 = document.createElement("div");
+			tempDiv2.classList.add("preference");
+			tempDiv2.innerHTML = "<span class='bold'>i<sub>" + (i+1) + "</sub></span> : (" + transformIndice(e, "s", i, "establishment") + ")";
+			studentsEstablishmentsDiv.append(tempDiv2);
+		});
+		establishments.forEach((e, i) => {
+			let tempDiv = document.createElement("div");
+			tempDiv.classList.add("preference");
+			tempDiv.innerHTML = "<span class='bold'>s<sub>" + (i+1) + "</sub></span> : (" + transformIndice(e, "i", i, "student") + ")";
+			establishmentsStudentsDiv.append(tempDiv);
+			let tempDiv2 = document.createElement("div");
+			tempDiv2.classList.add("preference");
+			tempDiv2.innerHTML = "<span class='bold'>s<sub>" + (i+1) + "</sub></span> : (" + transformIndice(e, "i", i, "establishment") + ")";
+			establishmentsEstablishmentsDiv.append(tempDiv2);
+		});
+	}
+
+	async function calculateSatisfaction(antipriority, answers) {
+		let result = await eel.satisfactionAlgorithm(antipriority, answers)();
+		result = (result / (nbStudent * nbEstablishment)) * 100
+		let satisfactionParEntite = {}
+		for(const [key, value] of Object.entries(answers)) {
+			satisfactionParEntite[key] = (antipriority[0].length-antipriority[key-1].indexOf(value))/antipriority[0].length*100
+		}
+		let average = Object.values(satisfactionParEntite).reduce((a, b) => a + b, 0) / Object.values(satisfactionParEntite).length;
+		console.log(average);
+		return [satisfactionParEntite, average];
+	}
+
+	async function fillChart(satisfactionParEntite1, satisfactionParEntite2, average1, average2, satisfactionParEntite3, satisfactionParEntite4, average3, average4) {
+		let ctx1 = document.getElementById("chart1").getContext('2d');
+		let ctx2 = document.getElementById("chart2").getContext('2d');
+		let ctx3 = document.getElementById("chart3").getContext('2d');
+		let ctx4 = document.getElementById("chart4").getContext('2d');
+		let chart1 = Chart.getChart("chart1");
+		let chart2 = Chart.getChart("chart2");
+		let chart3 = Chart.getChart("chart3");
+		let chart4 = Chart.getChart("chart4");
+		if (chart1) chart1.destroy();
+		if (chart2) chart2.destroy();
+		if (chart3) chart3.destroy();
+		if (chart4) chart4.destroy();
+		let globalAverageForStudent = (average1 + average2) / 2;
+		getMixedChart(ctx1, satisfactionParEntite1, average1, globalAverageForStudent);
+		getMixedChart(ctx2, satisfactionParEntite2, average2, globalAverageForStudent);
+		let globalAverageForEstablishment = (average3 + average4) / 2;
+		getMixedChart(ctx3, satisfactionParEntite3, average3, globalAverageForEstablishment);
+		getMixedChart(ctx4, satisfactionParEntite4, average4, globalAverageForEstablishment);
+		fillStats(globalAverageForStudent, globalAverageForEstablishment, average1, average2, average3, average4);
+	}
+
+	function fillStats(globalAverageForStudent, globalAverageForEstablishment, average1, average2, average3, average4) {
+		document.getElementById("globalAverageForStudent").innerHTML = globalAverageForStudent.toFixed(2) + "%";
+		document.getElementById("globalAverageForEstablishment").innerHTML = globalAverageForEstablishment.toFixed(2) + "%";
+		document.getElementById("satisfaction-local-students-students").innerHTML = average1.toFixed(2) + "%";
+		document.getElementById("satisfaction-local-establishments-students").innerHTML = average2.toFixed(2) + "%";
+		document.getElementById("satisfaction-local-students-establishments").innerHTML = average3.toFixed(2) + "%";
+		document.getElementById("satisfaction-local-establishments-establishments").innerHTML = average4.toFixed(2) + "%";
+	}
+
+	function getMixedChart(ctx, satisfactionParEntite, groupAverage, totalAverage) {
+		new Chart(ctx, {
+			data: {
+				datasets: [{
+					type: 'bar',
+					label: 'Individual satisfaction',
+					data: Object.values(satisfactionParEntite),
+				}, {
+					type: 'line',
+					label: 'Group satisfaction',
+					data: Array(Object.values(satisfactionParEntite).length).fill(groupAverage),
+				}, {
+					type: 'line',
+					label: 'Global satisfaction',
+					data: Array(Object.values(satisfactionParEntite).length).fill(totalAverage),
+				}],
+				labels: Object.keys(satisfactionParEntite),
 			},
-			elements: {
-				point: {
-					radius: 0
+			options: {
+				scales: {
+					y: {
+						beginAtZero: true,
+						suggestedMax: 100
+					}
+				},
+				elements: {
+					point: {
+						radius: 0
+					}
 				}
 			}
-		}
 		});
- 
-	</script>
-  </body>
+	}
+
+	async function solve() {
+		if(!filledPreference) {
+			await getData();
+		}
+
+		let answers_for_students = await eel.resolveStableMariage(students, establishments)();
+		console.log(answers_for_students);
+		for(let i = 1; i<=nbStudent; i++) {
+			for(let j = 1; j<=nbEstablishment; j++) {
+				removeChoice("i"+i+"_"+j, "student");
+				removeChoice("s"+i+"_"+j, "student");
+			}
+		}
+		for(const [key, value] of Object.entries(answers_for_students)) {
+			highlightChoice("i"+key+"_"+value, "student");
+			highlightChoice("s"+value+"_"+key, "student");
+		}
+
+		let answers_for_establishments = await eel.resolveStableMariage(establishments, students)();
+		console.log(answers_for_establishments);
+		for(let i = 1; i<=nbEstablishment; i++) {
+			for(let j = 1; j<=nbStudent; j++) {
+				removeChoice("i"+j+"_"+i, "establishment");
+				removeChoice("s"+j+"_"+i, "establishment");
+			}
+		}
+		for(const [key, value] of Object.entries(answers_for_establishments)) {
+			highlightChoice("i"+value+"_"+key, "establishment");
+			highlightChoice("s"+key+"_"+value, "establishment");
+		}
+
+		//Satisfaction étudiant pour étudiant
+		let [sat1, avg1] = await calculateSatisfaction(establishments, answers_for_students, "chart1");
+		//Satisfaction établissements pour étudiant
+		let [sat2, avg2] = await calculateSatisfaction(students, answers_for_students, "chart2");
+		//Satisfaction étudiant pour établissements
+		let [sat3, avg3] = await calculateSatisfaction(establishments, answers_for_establishments, "chart3");
+		//Satisfaction établissements pour établissements
+		let [sat4, avg4] = await calculateSatisfaction(students, answers_for_establishments, "chart4");
+		fillChart(sat1, sat2, avg1, avg2, sat3, sat4, avg3, avg4);
+	}
+</script>
+</body>
 </html>
