@@ -156,12 +156,13 @@
 		});
 	}
 
-	async function calculateSatisfaction(antipriority, answers) {
+	//Antipriority = value, answers = key , value
+	async function calculateSatisfaction(antipriority, answers, chart) {
+		console.log(chart)
 		//Get satisfaction method
 		let satisfaction = document.getElementById("satisfaction").value;
+		console.log(answers);
 
-		let result = await eel.satisfactionAlgorithm(antipriority, answers)();
-		result = (result / (nbStudent * nbEstablishment)) * 100
 		let satisfactionParEntite = {}
 		for(const [key, value] of Object.entries(answers)) {
 			switch (satisfaction) {
@@ -180,7 +181,7 @@
 			}
 		}
 		let average = Object.values(satisfactionParEntite).reduce((a, b) => a + b, 0) / Object.values(satisfactionParEntite).length;
-		console.log(average);
+		//console.log(average);
 		return [satisfactionParEntite, average];
 	}
 
@@ -210,8 +211,8 @@
 		document.getElementById("satisfaction-global-students").innerText = (globalAverageForStudent*100).toFixed(0) + "%";
 		document.getElementById("satisfaction-global-establishments").innerText = (globalAverageForEstablishment*100).toFixed(0) + "%";
 		document.getElementById("satisfaction-local-students-students").innerText = (average1*100).toFixed(0) + "%";
-		document.getElementById("satisfaction-local-establishments-students").innerText = (average2*100).toFixed(0) + "%";
-		document.getElementById("satisfaction-local-students-establishments").innerText = (average3*100).toFixed(0) + "%";
+		document.getElementById("satisfaction-local-students-establishments").innerText = (average2*100).toFixed(0) + "%";
+		document.getElementById("satisfaction-local-establishments-students").innerText = (average3*100).toFixed(0) + "%";
 		document.getElementById("satisfaction-local-establishments-establishments").innerText = (average4*100).toFixed(0) + "%";
 	}
 
@@ -255,6 +256,7 @@
 		}
 
 		let answers_for_students = await eel.resolveStableMariage(students, establishments)();
+		console.log("Answers for students : ");
 		console.log(answers_for_students);
 		for(let i = 1; i<=nbVoeux; i++) {
 			for(let j = 1; j<=nbVoeux; j++) {
@@ -263,11 +265,12 @@
 			}
 		}
 		for(const [key, value] of Object.entries(answers_for_students)) {
-			highlightChoice("i"+key+"_"+value, "student");
-			highlightChoice("s"+value+"_"+key, "student");
+			highlightChoice("i"+value+"_"+key, "student");
+			highlightChoice("s"+key+"_"+value, "student");
 		}
 
 		let answers_for_establishments = await eel.resolveStableMariage(establishments, students)();
+		console.log("Answers for establishments : ");
 		console.log(answers_for_establishments);
 		for(let i = 1; i<=nbVoeux; i++) {
 			for(let j = 1; j<=nbVoeux; j++) {
@@ -281,13 +284,17 @@
 		}
 
 		//Satisfaction étudiant pour étudiant
-		let [sat1, avg1] = await calculateSatisfaction(establishments, answers_for_students, "chart1");
+		//i1 : s1
+		let [sat1, avg1] = await calculateSatisfaction(students, answers_for_students, "chart1");
 		//Satisfaction établissements pour étudiant
-		let [sat2, avg2] = await calculateSatisfaction(students, answers_for_students, "chart2");
+		//s1 : i1
+		let [sat2, avg2] = await calculateSatisfaction(establishments, Object.fromEntries(Object.entries(answers_for_students).map(([k, v]) => [parseInt(v), parseInt(k)])), "chart2");
 		//Satisfaction étudiant pour établissements
-		let [sat3, avg3] = await calculateSatisfaction(establishments, answers_for_establishments, "chart3");
+		//i1 : s1
+		let [sat3, avg3] = await calculateSatisfaction(students, answers_for_establishments, "chart3");
 		//Satisfaction établissements pour établissements
-		let [sat4, avg4] = await calculateSatisfaction(students, answers_for_establishments, "chart4");
+		//i1 : s1
+		let [sat4, avg4] = await calculateSatisfaction(establishments, Object.fromEntries(Object.entries(answers_for_establishments).map(([k, v]) => [parseInt(v), parseInt(k)])), "chart4");
 		fillChart(sat1, sat2, avg1, avg2, sat3, sat4, avg3, avg4);
 	}
 </script>
